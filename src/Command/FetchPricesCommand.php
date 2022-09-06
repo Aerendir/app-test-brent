@@ -46,8 +46,11 @@ class FetchPricesCommand extends Command
 
         $this->pricesManager->persistPrices($prices);
 
-        $io->write('Saving prices in the DB');
+        $io->writeln('');
+        $io->writeln('Saving prices in the DB');
         $this->entityManager->flush();
+
+        $io->success('All prices fetched and saved in the DB');
 
         return Command::SUCCESS;
     }

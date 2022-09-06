@@ -31,7 +31,7 @@ class PricesManager
             $this->persistPrice($price, $i, $totalPrices);
         }
 
-        $this->logger->debug('{total_prices} persisted', ['total_prices' => $totalPrices]);
+        $this->logger->debug('All {total_prices} are persisted', ['total_prices' => $totalPrices]);
     }
 
     public function persistPrice(Price $price, int $i = null, int $totalPrices = null):void
