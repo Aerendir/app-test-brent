@@ -5,7 +5,7 @@ namespace App\Entity;
 use App\Repository\PriceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use SerendipityHQ\Component\ValueObjects\Money\Bridge\Doctrine\MoneyType;
+use SerendipityHQ\Component\ValueObjects\Money\Money;
 
 #[ORM\Entity(repositoryClass: PriceRepository::class)]
 class Price
@@ -20,7 +20,7 @@ class Price
         private readonly \DateTimeImmutable $date,
 
         #[ORM\Column(type: 'money')]
-        private readonly MoneyType $price,
+        private readonly Money $price,
 
         #[ORM\Column(type: Types::STRING)]
         private readonly string $source,
@@ -36,7 +36,7 @@ class Price
         return $this->date;
     }
 
-    public function getPrice() : MoneyType
+    public function getPrice() : Money
     {
         return $this->price;
     }

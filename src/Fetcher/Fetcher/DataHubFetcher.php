@@ -6,6 +6,7 @@ use App\Entity\Price;
 use App\Fetcher\FetcherInterface;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
+use SerendipityHQ\Component\ValueObjects\Money\Money;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class DataHubFetcher implements FetcherInterface
@@ -38,7 +39,7 @@ class DataHubFetcher implements FetcherInterface
         $this->logger->debug('Prices of BRENT fetched');
 
         $this->logger->info('Processing prices of BRENT...');
-        $prices = array_map(fn($price) => new Price($price['Date'], $price['price']), $data);
+        $prices = array_map(fn($price) => new Price(new \DateTimeImmutable($price['Date']), new Money([Money::HUMAN_AMOUNT => $price['Price'], Money::CURRENCY => 'USD']), self::getName()), $data);
         $this->logger->debug('Prices of BRENT processed');
 
         return $prices;
