@@ -5,8 +5,9 @@ namespace App\Controller\Api\Brent;
 use App\Controller\Api\AbstractApiController;
 use App\Controller\Api\Brent\Input\BrentInput;
 use App\Exception\ApiInvalidRequestData;
-use OpenApi\Annotations as OA;
-use Nelmio\ApiDocBundle\Annotation as NOA;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use OpenApi\Attributes\JsonContent;
+use OpenApi\Attributes\RequestBody;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,9 +18,8 @@ class BrentController extends AbstractApiController
 {
     /**
      * Returns the price points of Brent in the specified time period.
-     *
-     * @OA\RequestBody(@NOA\Model(type=BrentInput::class))
      */
+    #[RequestBody(content: new JsonContent(ref: new Model(type: BrentInput::class)))]
     #[Route('/brent', methods: ['POST'])]
     public function get(Request $request): Response
     {
