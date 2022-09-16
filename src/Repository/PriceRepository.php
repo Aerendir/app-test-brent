@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Price;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -39,28 +41,19 @@ class PriceRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return Price[] Returns an array of Price objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('p.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * @return Collection|array<Price>
+     */
+    public function findByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate):Collection
+    {
+        $startDate = \DateTimeImmutable::createFromInterface($startDate);
+        $endDate = \DateTimeImmutable::createFromInterface($endDate);
 
-//    public function findOneBySomeField($value): ?Price
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        $criteria = new Criteria();
+        $criteria
+            ->where(Criteria::expr()->gte('date', $startDate))
+            ->andWhere(Criteria::expr()->lte('date', $endDate));
+
+        return $this->matching($criteria);
+    }
 }

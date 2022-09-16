@@ -9,10 +9,13 @@ use Symfony\Component\Form\FormBuilderInterface;
 
 class DateIso8601RangeApiInput extends AbstractType
 {
+    public const START_DATE = 'startDateISO8601';
+    public const END_DATE = 'endDateISO8601';
+
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('startDateISO8601', DateType::class)
-            ->add('endDateISO8601', DateType::class);
+            ->add(self::START_DATE, DateType::class, ['widget' => 'single_text'])
+            ->add(self::END_DATE, DateType::class, ['widget' => 'single_text']);
     }
 }
