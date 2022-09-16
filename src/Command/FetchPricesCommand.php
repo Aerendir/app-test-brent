@@ -12,7 +12,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 #[AsCommand(
     name: FetchPricesCommand::NAME,
@@ -21,6 +20,7 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 class FetchPricesCommand extends Command
 {
     public const NAME = 'app:fetch-prices';
+    private const MAX_TIMES_TO_ASK = 2;
     private const OPT_SOURCE = 'source';
 
     public function __construct(
@@ -46,36 +46,48 @@ class FetchPricesCommand extends Command
 
         $io->title(self::NAME);
 
-        $sourceName = $input->getOption(self::OPT_SOURCE);
-
-        if (null === $sourceName) {
-            $helper = $this->getHelper('question');
-            $question = new ChoiceQuestion(
-                'Please, select the source',
-                $this->fetcherRegistry->getNamesOfAvailableFetchers(),
-            );
-
-            $question->setErrorMessage('The source is invalid');
-            $sourceName = $helper->ask($input, $output, $question);
-        }
-
-        $fetcher = $this->fetcherRegistry->findByName($sourceName);
         try {
-            $prices = $fetcher->fetch();
-        } catch (TransportExceptionInterface $exception) {
-            $io->error($exception->getMessage());
+            $sourceName = $this->getSourceName($input, $output);
+            $prices = $this->fetchPrices($sourceName);
+        } catch (\Throwable $throwable) {
+            $io->error($throwable->getMessage());
 
             return self::FAILURE;
         }
 
         $this->pricesManager->persistPrices($prices);
 
-        $io->writeln('');
+        $io->newLine();
         $io->writeln('Saving prices in the DB');
         $this->entityManager->flush();
 
         $io->success('All prices fetched and saved in the DB');
 
         return Command::SUCCESS;
+    }
+
+    private function getSourceName(InputInterface $input, OutputInterface $output):string
+    {
+        return $input->getOption(self::OPT_SOURCE) ?? $this->askForSourceName($input, $output);
+    }
+
+    private function askForSourceName(InputInterface $input, OutputInterface $output):string
+    {
+        $helper = $this->getHelper('question');
+        $availableFetchers = $this->fetcherRegistry->getNamesOfAvailableFetchers();
+
+        $question = new ChoiceQuestion('Please, select the source', $availableFetchers);
+        $question->setErrorMessage('The source is invalid');
+        $question->setMaxAttempts(self::MAX_TIMES_TO_ASK);
+        $question->setValidator(static fn ($value) => empty($value) || '' === trim($value) ? throw new \InvalidArgumentException('You must pass the name of the source.') : $value);
+
+        return $helper->ask($input, $output, $question);
+    }
+
+    private function fetchPrices(string $sourceName):array
+    {
+        $fetcher = $this->fetcherRegistry->findByName($sourceName);
+
+        return $fetcher->fetch();
     }
 }
