@@ -8,7 +8,7 @@ ARG PHP_VERSION=8.1
 ARG CADDY_VERSION=2
 
 # Prod image
-FROM php:${PHP_VERSION}-fpm-alpine AS app_php
+FROM php:${PHP_VERSION}-fpm-alpine AS brent_php
 
 # Allow to use development versions of Symfony
 ARG STABILITY="stable"
@@ -119,7 +119,7 @@ RUN set -eux; \
     fi
 
 # Dev image
-FROM app_php AS app_php_dev
+FROM brent_php AS brent_php_dev
 
 ENV APP_ENV=dev XDEBUG_MODE=off
 VOLUME /srv/app/var/
@@ -139,7 +139,7 @@ RUN set -eux; \
 RUN rm -f .env.local.php
 
 # Build Caddy with the Mercure and Vulcain modules
-FROM caddy:${CADDY_VERSION}-builder-alpine AS app_caddy_builder
+FROM caddy:${CADDY_VERSION}-builder-alpine AS brent_caddy_builder
 
 RUN xcaddy build \
 	--with github.com/dunglas/mercure \
@@ -148,10 +148,10 @@ RUN xcaddy build \
 	--with github.com/dunglas/vulcain/caddy
 
 # Caddy image
-FROM caddy:${CADDY_VERSION} AS app_caddy
+FROM caddy:${CADDY_VERSION} AS brent_caddy
 
 WORKDIR /srv/app
 
-COPY --from=app_caddy_builder /usr/bin/caddy /usr/bin/caddy
-COPY --from=app_php /srv/app/public public/
+COPY --from=brent_caddy_builder /usr/bin/caddy /usr/bin/caddy
+COPY --from=brent_php /srv/app/public public/
 COPY docker/caddy/Caddyfile /etc/caddy/Caddyfile
