@@ -30,11 +30,12 @@ class PricesManager
         $prices = $this->filterOutAlreadyPersistedPrices($prices);
 
         $totalPrices = \count($prices);
-        $this->logger->info('Persisting {total_prices}', ['total_prices' => $totalPrices]);
+        $this->logger->info('Persisting {total_prices} prices of BRENT', ['total_prices' => $totalPrices]);
 
         $i = 0;
         foreach ($prices as $price) {
             $i++;
+            // This may be improved with flushes of batches
             $this->persistPrice($price, $i, $totalPrices);
         }
 
